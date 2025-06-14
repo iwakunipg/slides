@@ -1,36 +1,62 @@
-﻿name: Marp Build & Deploy
+﻿name: Build and Deploy Marp Slides (Official Pages Method)
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
     paths:
-      - '**.marp.md'
-      - '.github/workflows/**'
+      - '**/*.marp.md'
+      - '.github/workflows/marp.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: marp-pages
+  cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 18
 
       - name: Install Marp CLI
         run: npm install -g @marp-team/marp-cli
 
-      - name: Convert slides to HTML
+      - name: Convert all .marp.md files to HTML (with directory structure)
         run: |
-          mkdir -p dist
-          for file in *.marp.md; do
-            [ -e "$file" ] || continue
-            marp "$file" --html --output "dist/$(basename "${file%.marp.md}.html")"
+          mkdir -p public
+          find . -name "*.marp.md" | while read file; do
+            target="public/${file%.marp.md}.html"
+            mkdir -p "$(dirname "$target")"
+            marp "$file" --html -o "$target"
           done
 
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v2
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
+          path: ./public
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
