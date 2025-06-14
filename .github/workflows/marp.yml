@@ -1,0 +1,37 @@
+﻿name: Marp Build & Deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '**.marp.md'
+      - '.github/workflows/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install Marp CLI
+        run: npm install -g @marp-team/marp-cli
+
+      - name: Convert Marp slides to HTML
+        run: |
+          mkdir -p dist
+          for file in *.marp.md; do
+            [ -e """" ] || continue
+            marp """" --html --output ""dist/.html""
+          done
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
