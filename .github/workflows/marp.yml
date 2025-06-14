@@ -10,25 +10,21 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
         with:
           node-version: 18
 
       - name: Install Marp CLI
         run: npm install -g @marp-team/marp-cli
 
-      - name: Convert Marp slides to HTML
+      - name: Convert slides to HTML
         run: |
           mkdir -p dist
-          for file in *.marp.md; do
-            [ -e """" ] || continue
-            marp """" --html --output ""dist/.html""
-          done
+          marp slides/*.marp.md --html --output dist/
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
