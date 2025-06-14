@@ -24,7 +24,10 @@ jobs:
       - name: Convert slides to HTML
         run: |
           mkdir -p dist
-          marp slides/*.marp.md --html --output dist/
+          for file in *.marp.md; do
+            [ -e "$file" ] || continue
+            marp "$file" --html --output "dist/$(basename "${file%.marp.md}.html")"
+          done
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
