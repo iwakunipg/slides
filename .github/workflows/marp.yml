@@ -1,4 +1,4 @@
-﻿name: Build and Deploy Marp Slides (Official Pages Method)
+﻿name: Build and Deploy Marp Slides
 
 on:
   push:
@@ -34,10 +34,12 @@ jobs:
       - name: Install Marp CLI
         run: npm install -g @marp-team/marp-cli
 
-      - name: Convert all .marp.md files to HTML (with directory structure)
+      - name: Convert .marp.md to HTML with folder structure
         run: |
           mkdir -p public
-          find . -name "*.marp.md" | while read file; do
+          shopt -s globstar
+          for file in **/*.marp.md; do
+            [ -e "$file" ] || continue
             target="public/${file%.marp.md}.html"
             mkdir -p "$(dirname "$target")"
             marp "$file" --html -o "$target"
