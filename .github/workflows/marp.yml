@@ -1,4 +1,4 @@
-﻿name: Marp Build & Deploy to GitHub Pages
+﻿name: Build and Deploy Marp Slides (Current Month Only)
 
 on:
   push:
@@ -7,6 +7,7 @@ on:
     paths:
       - '**/*.marp.md'
       - '.github/workflows/marp.yml'
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -14,7 +15,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: 'pages'
+  group: marp-pages
   cancel-in-progress: true
 
 jobs:
@@ -33,23 +34,28 @@ jobs:
       - name: Install Marp CLI
         run: npm install -g @marp-team/marp-cli
 
-      - name: Generate slide HTMLs (per month scope)
+      - name: Convert .marp.md from current month only
         run: |
-          mkdir -p dist
-          for file in $(git diff --name-only --diff-filter=AM HEAD~1 HEAD | grep -E '\.marp\.md$'); do
-            folder=$(dirname "$file")
-            mkdir -p "dist/$folder"
-            marp "$file" --html -o "dist/${file%.marp.md}.html"
+          mkdir -p public
+          YEAR=$(date +%Y)
+          MONTH=$(date +%m)
+          shopt -s globstar
+          for file in "$YEAR/$MONTH"/**/*.marp.md; do
+            [ -e "$file" ] || continue
+            target="public/${file%.marp.md}.html"
+            mkdir -p "$(dirname "$target")"
+            marp "$file" --html -o "$target"
           done
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v3
         with:
-          path: ./dist
+          path: ./public
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
+
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
