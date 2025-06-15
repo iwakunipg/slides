@@ -1,12 +1,12 @@
-﻿name: Build and Deploy Marp Slides
+﻿name: Marp Build & Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
     paths:
       - '**/*.marp.md'
       - '.github/workflows/marp.yml'
-  workflow_dispatch:
 
 permissions:
   contents: read
@@ -25,7 +25,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
@@ -33,21 +33,28 @@ jobs:
       - name: Install Marp CLI
         run: npm install -g @marp-team/marp-cli
 
-      - name: Find changed slide directories
-        id: changed
-        run: |
-          echo "dirs=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '.marp.md$' | cut -d'/' -f1,2 | sort -u | paste -sd ' ' -)" >> $GITHUB_OUTPUT
-
-      - name: Convert changed .marp.md to HTML
-        if: steps.changed.outputs.dirs != ''
+      - name: Generate slide HTMLs (per month scope)
         run: |
           mkdir -p dist
-          for dir in ${{ steps.changed.outputs.dirs }}; do
-            mkdir -p "dist/$dir"
-            for file in $(find "$dir" -name '*.marp.md'); do
-              marp "$file" --html -o "dist/${file%.marp.md}.html"
-            done
+          for file in $(git diff --name-only --diff-filter=AM HEAD~1 HEAD | grep -E '\.marp\.md$'); do
+            folder=$(dirname "$file")
+            mkdir -p "dist/$folder"
+            marp "$file" --html -o "dist/${file%.marp.md}.html"
           done
 
       - name: Upload artifact
-        uses: actions/upload-pages-artif
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: ./dist
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
