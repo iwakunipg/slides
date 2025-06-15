@@ -1,13 +1,11 @@
-﻿name: Build and Deploy Marp Slides
+﻿name: Marp Build & Deploy (Monthly Folders)
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
     paths:
-      - '**/*.marp.md'
-      - '.github/workflows/marp.yml'
-  workflow_dispatch:
+      - '**.marp.md'
+      - '.github/workflows/**'
 
 permissions:
   contents: read
@@ -15,7 +13,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: marp-pages
+  group: pages
   cancel-in-progress: true
 
 jobs:
@@ -23,32 +21,39 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # git diff に必要
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
           node-version: 18
 
       - name: Install Marp CLI
         run: npm install -g @marp-team/marp-cli
 
-      - name: Convert .marp.md to HTML with folder structure
+      - name: Convert updated monthly folders only
         run: |
-          mkdir -p public
-          shopt -s globstar
-          for file in **/*.marp.md; do
-            [ -e "$file" ] || continue
-            target="public/${file%.marp.md}.html"
-            mkdir -p "$(dirname "$target")"
-            marp "$file" --html -o "$target"
+          mkdir -p dist
+          folders=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} \
+            | grep '\.marp\.md$' \
+            | awk -F'/' '{print $1 "/" $2}' \
+            | sort -u)
+          
+          echo "Changed folders: $folders"
+
+          for folder in $folders; do
+            echo "Converting slides in $folder"
+            mkdir -p "dist/$folder"
+            marp "$folder"/*.marp.md --html --output "dist/$folder"
           done
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Upload artifact for Pages
+        uses: actions/upload-pages-artifact@v2
         with:
-          path: ./public
+          path: dist
 
   deploy:
     runs-on: ubuntu-latest
