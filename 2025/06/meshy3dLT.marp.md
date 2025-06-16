@@ -52,7 +52,6 @@ Meshyくん、よろしくね〜！って軽い気持ちで投入しました。
 …でも！
 
 - **アニメ風**になってて、
-- 「私のアイコンらしさ」は薄い
 
 たぶん、Meshyが“いい感じ”に整えてくれたんでしょうけど、  
 なんかこう、「違う…そうじゃない」感がありました。
@@ -61,11 +60,8 @@ Meshyくん、よろしくね〜！って軽い気持ちで投入しました。
 
 ## じゃあ、テキストでやってみよう
 
-そこで今度は、イラストの特徴を言葉にして、  
+今度は、イラストの特徴を言葉にして、
 プロンプト（テキスト）で作ってみました。
-
-今回は「こういう人物像にしてほしい」と言葉で指定できるので、  
-より自分の理想に近づけるはず！と期待しました。
 
 ちなみに自画像イラストを元にChatCPTさんに考えてもらった。
 
@@ -78,8 +74,7 @@ Asian young adult, short black hair, light peach skin, navy blazer, black T-shir
 
 出てきたモデルたちは、なぜか全員…
 
-- 黒ジャケットで
-- ポケットに手を入れてて
+- ジャケットのポケットに手を入れてて
 - しかも男性っぽい体型
 
 あれ？ポーズまで似てる？
@@ -96,8 +91,7 @@ Asian young adult, short black hair, light peach skin, navy blazer, black T-shir
 - ジャケットもOK！
 - ポケットにも手を入れてない！
 
-やった！と思ったら、  
-Tシャツのペンギンがでっっかい！！！！
+やった！と思ったら、Tシャツのペンギンがでっっかい！
 
 なんか…主役がペンギンになってる？
 
@@ -114,8 +108,7 @@ young Asian woman, gentle and neat, medium straight black bob with side bangs, l
 **顔がペンギンに**
 
 え？「ペンギンのイラスト」って言ったつもりなのに？
-聞いてますか？
-
+テスクチャープロンプトに入れちゃったからか。
 
 テクスチャープロンプト
 black fitted T-shirt with a small, simple, cute white cartoon penguin printed neatly on the upper center of the chest, not too large, with clear outline, round body, and orange beak and feet
