@@ -1,0 +1,66 @@
+﻿name: Build and Deploy Marp Slides (Current Month Only)
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**/*.marp.md'
+      - '.github/workflows/marp.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: marp-pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install Marp CLI
+        run: npm install -g @marp-team/marp-cli
+
+      - name: Convert .marp.md from current month only
+        run: |
+          mkdir -p public
+          YEAR=$(date +%Y)
+          MONTH=$(date +%m)
+          shopt -s globstar
+          for file in "$YEAR/$MONTH"/**/*.marp.md; do
+            [ -e "$file" ] || continue
+            target="public/${file%.marp.md}.html"
+            mkdir -p "$(dirname "$target")"
+            marp "$file" --html -o "$target"
+          done
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./public
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
